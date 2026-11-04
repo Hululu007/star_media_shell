@@ -192,7 +192,7 @@ class JsonCmsSpider implements BaseSpider {
     final m = Map<String, dynamic>.from(raw.first as Map);
     final vod = _item(m);
     return vod.copyWith(
-      des: vod.des.isNotEmpty ? vod.des : '${m['vod_content'] ?? ''}',
+      des: (vod.des != null && vod.des!.isNotEmpty) ? vod.des : '${m['vod_content'] ?? ''}',
       episodes: _parseEpisodes(m),
     );
   }

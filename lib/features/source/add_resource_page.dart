@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../services/live_service.dart';
 import '../../services/resource_import_service.dart';
+import '../../services/source_repo_service.dart';
 import '../../services/source_service.dart';
 
 /// 添加资源（对标完整资源中心入口）
