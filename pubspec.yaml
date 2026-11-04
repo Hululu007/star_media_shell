@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 0.1.0+1
 
 environment:
-  sdk: '>=3.5.0 <4.0.0'
+  sdk: '>=3.4.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -51,8 +51,8 @@ dependencies:
   path_provider: ^2.1.5
   intl: any
   wakelock_plus: ^1.2.8
-  screen_brightness: ^2.0.0+2
-  volume_controller: ^2.0.8
+  screen_brightness: ^2.0.0
+  volume_controller: 2.0.8
 
 dev_dependencies:
   flutter_test:
