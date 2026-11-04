@@ -70,3 +70,8 @@ flutter:
     - assets/js/
     - assets/media/
     - assets/python/
+
+dependency_overrides:
+  # 避免旧 Flutter 与 package_info_plus 9 的 gradle 不兼容；3.29 上通常可解
+  # package_info_plus: 8.3.0
+

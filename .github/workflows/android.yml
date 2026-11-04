@@ -25,7 +25,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.24.5"
+          flutter-version: "3.29.3"
           channel: stable
           cache: true
 
@@ -80,6 +80,8 @@ jobs:
               sed -i '/defaultConfig {/a\        ndk { abiFilters "armeabi-v7a", "arm64-v8a", "x86_64" }\n        python {\n            version "3.11"\n            pip {\n                install "requests"\n                install "beautifulsoup4"\n                install "lxml"\n                install "pycryptodome"\n            }\n        }' android/app/build.gradle
             fi
             sed -i 's/minSdk = flutter.minSdkVersion/minSdk = Math.max(flutter.minSdkVersion, 24)/' android/app/build.gradle || true
+            sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' android/app/build.gradle || true
+            sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/' android/app/build.gradle || true
             sed -i 's/namespace = .*/namespace = "com.starmedia.shell"/' android/app/build.gradle || true
             sed -i 's/applicationId = .*/applicationId = "com.starmedia.shell"/' android/app/build.gradle || true
           fi
