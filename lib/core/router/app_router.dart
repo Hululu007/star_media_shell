@@ -11,6 +11,7 @@ import '../../features/home/home_page.dart';
 import '../../features/player/player_page.dart';
 import '../../features/search/search_page.dart';
 import '../../features/settings/settings_page.dart';
+import '../../features/mine/mine_page.dart';
 import '../../features/source/source_page.dart';
 import '../../features/source/source_repo_page.dart';
 import '../../features/source/add_resource_page.dart';
@@ -47,27 +48,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/favorite',
-                name: 'favorite',
-                builder: (context, state) => const FavoritePage(),
+                path: '/search',
+                name: 'search',
+                builder: (context, state) => const SearchPage(),
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/history',
-                name: 'history',
-                builder: (context, state) => const HistoryPage(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/settings',
-                name: 'settings',
-                builder: (context, state) => const SettingsPage(),
+                path: '/mine',
+                name: 'mine',
+                builder: (context, state) => const MinePage(),
               ),
             ],
           ),
@@ -77,6 +69,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/splash',
         name: 'splash',
         builder: (context, state) => const SplashPage(),
+      ),
+      GoRoute(
+        path: '/mine/favorites',
+        name: 'mine_favorites',
+        builder: (context, state) => const FavoritePage(),
+      ),
+      GoRoute(
+        path: '/mine/history',
+        name: 'mine_history',
+        builder: (context, state) => const HistoryPage(),
+      ),
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        builder: (context, state) => const SettingsPage(),
       ),
       GoRoute(
         path: '/source',
@@ -160,19 +167,14 @@ class MainShell extends StatelessWidget {
             label: '直播',
           ),
           NavigationDestination(
-            icon: Icon(Icons.favorite_border_rounded),
-            selectedIcon: Icon(Icons.favorite_rounded),
-            label: '收藏',
+            icon: Icon(Icons.search_rounded),
+            selectedIcon: Icon(Icons.search_rounded),
+            label: '搜索',
           ),
           NavigationDestination(
-            icon: Icon(Icons.history_rounded),
-            selectedIcon: Icon(Icons.history_rounded),
-            label: '历史',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings_rounded),
-            label: '设置',
+            icon: Icon(Icons.person_outline_rounded),
+            selectedIcon: Icon(Icons.person_rounded),
+            label: '我的',
           ),
         ],
       ),

@@ -63,10 +63,6 @@ jobs:
             cp -a "$CUSTOM/app/src/main/res/." android/app/src/main/res/ || true
           fi
 
-          # Prefer NOT enabling Chaquopy on CI first (heavy + flaky); keep Kotlin reflection fallback
-          # Users can enable locally via android/CHAQUOPY.md
-
-          # Force SDK 36 on Groovy or KTS app build files
           if [ -f android/app/build.gradle ]; then
             sed -i 's/compileSdk = .*/compileSdk = 36/' android/app/build.gradle || true
             sed -i 's/compileSdkVersion .*/compileSdk 36/' android/app/build.gradle || true
@@ -74,6 +70,12 @@ jobs:
             sed -i 's/minSdk = flutter.minSdkVersion/minSdk = Math.max(flutter.minSdkVersion, 24)/' android/app/build.gradle || true
             sed -i 's/namespace = .*/namespace = "com.starmedia.shell"/' android/app/build.gradle || true
             sed -i 's/applicationId = .*/applicationId = "com.starmedia.shell"/' android/app/build.gradle || true
+            # 仅 arm64
+            if ! grep -q 'abiFilters' android/app/build.gradle; then
+              sed -i '/defaultConfig {/a\        ndk { abiFilters "arm64-v8a" }' android/app/build.gradle
+            else
+              sed -i 's/abiFilters .*/abiFilters "arm64-v8a"/' android/app/build.gradle || true
+            fi
           fi
           if [ -f android/app/build.gradle.kts ]; then
             sed -i 's/compileSdk = .*/compileSdk = 36/' android/app/build.gradle.kts || true
@@ -81,39 +83,32 @@ jobs:
             sed -i 's/minSdk = flutter.minSdkVersion/minSdk = maxOf(flutter.minSdkVersion, 24)/' android/app/build.gradle.kts || true
             sed -i 's/namespace = .*/namespace = "com.starmedia.shell"/' android/app/build.gradle.kts || true
             sed -i 's/applicationId = .*/applicationId = "com.starmedia.shell"/' android/app/build.gradle.kts || true
+            if ! grep -q 'abiFilters' android/app/build.gradle.kts; then
+              sed -i '/defaultConfig {/a\        ndk {\n            abiFilters += listOf("arm64-v8a")\n        }' android/app/build.gradle.kts
+            fi
           fi
 
           mkdir -p assets/images assets/icons assets/js assets/media assets/python
-          # Help plugins using compilerOptions DSL
-          if [ -f android/settings.gradle ]; then
-            # ensure recent kotlin if specified
-            true
-          fi
           if [ -f android/gradle.properties ]; then
             grep -q kotlin.jvm.target.validation.mode android/gradle.properties || echo "kotlin.jvm.target.validation.mode=warning" >> android/gradle.properties
           fi
-
-          # Force Kotlin 2.1+ (package plugins need modern metadata)
           for f in android/settings.gradle android/settings.gradle.kts; do
             [ -f "$f" ] || continue
             sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "2.1.0"/' "$f" || true
             sed -i 's/id("org.jetbrains.kotlin.android") version "[^"]*"/id("org.jetbrains.kotlin.android") version "2.1.0"/' "$f" || true
           done
           echo MERGE_OK
-          ls android/app/src/main/kotlin/com/starmedia/shell/ || true
-          echo "--- app build file head ---"
-          head -40 android/app/build.gradle 2>/dev/null || head -40 android/app/build.gradle.kts 2>/dev/null || true
 
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build APK (debug)
-        run: flutter build apk --debug
+      - name: Build APK (release arm64)
+        run: flutter build apk --release --target-platform android-arm64
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: star-media-shell-debug-apk
+          name: star-media-shell-release-arm64
           path: build/app/outputs/flutter-apk/*.apk
           if-no-files-found: warn
