@@ -37,7 +37,7 @@ class AppSubtitleTrack extends Equatable {
   final List<SubtitleCue> cues;
   final bool isBuiltIn;
 
-  SubtitleTrack copyWith({List<SubtitleCue>? cues}) {
+  AppSubtitleTrack copyWith({List<SubtitleCue>? cues}) {
     return AppSubtitleTrack(
       id: id,
       label: label,
