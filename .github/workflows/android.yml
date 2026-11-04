@@ -63,32 +63,31 @@ jobs:
             cp -a "$CUSTOM/app/src/main/res/." android/app/src/main/res/ || true
           fi
 
-          # Inject Chaquopy plugin id into settings
-          if [ -f android/settings.gradle ] && ! grep -q com.chaquo.python android/settings.gradle; then
-            sed -i '/plugins {/a\    id "com.chaquo.python" version "17.2.0" apply false' android/settings.gradle
-          fi
-          if [ -f android/settings.gradle.kts ] && ! grep -q com.chaquo.python android/settings.gradle.kts; then
-            sed -i '/plugins {/a\    id("com.chaquo.python") version "17.2.0" apply false' android/settings.gradle.kts
-          fi
+          # Prefer NOT enabling Chaquopy on CI first (heavy + flaky); keep Kotlin reflection fallback
+          # Users can enable locally via android/CHAQUOPY.md
 
-          # Inject into app/build.gradle (Groovy only; skip complex kts python DSL)
+          # Force SDK 36 on Groovy or KTS app build files
           if [ -f android/app/build.gradle ]; then
-            if ! grep -q com.chaquo.python android/app/build.gradle; then
-              sed -i '/^plugins {/a\    id "com.chaquo.python"' android/app/build.gradle
-            fi
-            if ! grep -q 'python {' android/app/build.gradle; then
-              sed -i '/defaultConfig {/a\        ndk { abiFilters "armeabi-v7a", "arm64-v8a", "x86_64" }\n        python {\n            version "3.11"\n            pip {\n                install "requests"\n                install "beautifulsoup4"\n                install "lxml"\n                install "pycryptodome"\n            }\n        }' android/app/build.gradle
-            fi
+            sed -i 's/compileSdk = .*/compileSdk = 36/' android/app/build.gradle || true
+            sed -i 's/compileSdkVersion .*/compileSdk 36/' android/app/build.gradle || true
+            sed -i 's/targetSdk = .*/targetSdk = 36/' android/app/build.gradle || true
             sed -i 's/minSdk = flutter.minSdkVersion/minSdk = Math.max(flutter.minSdkVersion, 24)/' android/app/build.gradle || true
-            sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' android/app/build.gradle || true
-            sed -i 's/targetSdk = flutter.targetSdkVersion/targetSdk = 36/' android/app/build.gradle || true
             sed -i 's/namespace = .*/namespace = "com.starmedia.shell"/' android/app/build.gradle || true
             sed -i 's/applicationId = .*/applicationId = "com.starmedia.shell"/' android/app/build.gradle || true
+          fi
+          if [ -f android/app/build.gradle.kts ]; then
+            sed -i 's/compileSdk = .*/compileSdk = 36/' android/app/build.gradle.kts || true
+            sed -i 's/targetSdk = .*/targetSdk = 36/' android/app/build.gradle.kts || true
+            sed -i 's/minSdk = flutter.minSdkVersion/minSdk = maxOf(flutter.minSdkVersion, 24)/' android/app/build.gradle.kts || true
+            sed -i 's/namespace = .*/namespace = "com.starmedia.shell"/' android/app/build.gradle.kts || true
+            sed -i 's/applicationId = .*/applicationId = "com.starmedia.shell"/' android/app/build.gradle.kts || true
           fi
 
           mkdir -p assets/images assets/icons assets/js assets/media assets/python
           echo MERGE_OK
           ls android/app/src/main/kotlin/com/starmedia/shell/ || true
+          echo "--- app build file head ---"
+          head -40 android/app/build.gradle 2>/dev/null || head -40 android/app/build.gradle.kts 2>/dev/null || true
 
       - name: Flutter pub get
         run: flutter pub get

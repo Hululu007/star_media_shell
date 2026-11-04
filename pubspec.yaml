@@ -51,7 +51,7 @@ dependencies:
   path_provider: ^2.1.5
   intl: any
   wakelock_plus: ^1.2.8
-  screen_brightness: ^2.0.0
+  screen_brightness: 1.0.1
   volume_controller: ^3.4.4
 
 dev_dependencies:
