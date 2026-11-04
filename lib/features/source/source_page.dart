@@ -27,7 +27,7 @@ class SourcePage extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.add_rounded),
-            onPressed: () => _showAddDialog(context, ref),
+            onPressed: () => context.push('/source/add'),
           ),
         ],
       ),
@@ -36,7 +36,20 @@ class SourcePage extends ConsumerWidget {
         error: (e, _) => Center(child: Text('加载失败: $e')),
         data: (sources) {
           if (sources.isEmpty) {
-            return const Center(child: Text('暂无源，点击右上角添加'));
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('暂无源'),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    onPressed: () => context.push('/source/add'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('添加资源'),
+                  ),
+                ],
+              ),
+            );
           }
           return ListView.builder(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),

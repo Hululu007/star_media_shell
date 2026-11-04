@@ -13,6 +13,7 @@ import '../../features/search/search_page.dart';
 import '../../features/settings/settings_page.dart';
 import '../../features/source/source_page.dart';
 import '../../features/source/source_repo_page.dart';
+import '../../features/source/add_resource_page.dart';
 import '../../models/vod.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -86,6 +87,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/source/repo',
         name: 'source_repo',
         builder: (context, state) => const SourceRepoPage(),
+      ),
+      GoRoute(
+        path: '/source/add',
+        name: 'source_add',
+        builder: (context, state) => const AddResourcePage(),
       ),
       GoRoute(
         path: '/search',

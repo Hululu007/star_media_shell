@@ -68,11 +68,26 @@ class MockSpider extends BaseSpider {
       area: '中国大陆',
       type: '剧情 / 爱情',
       episodes: [
-        const Episode(name: '第01集', url: 'https://example.com/play/1.m3u8', flag: '线路1'),
-        const Episode(name: '第02集', url: 'https://example.com/play/2.m3u8', flag: '线路1'),
-        const Episode(name: '第03集', url: 'https://example.com/play/3.m3u8', flag: '线路1'),
-        const Episode(name: '第01集', url: 'https://example.com/play/b1.m3u8', flag: '线路2'),
-        const Episode(name: '第02集', url: 'https://example.com/play/b2.m3u8', flag: '线路2'),
+        const Episode(
+          name: 'Big Buck Bunny',
+          url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+          flag: '演示线路',
+        ),
+        const Episode(
+          name: 'Elephant Dream',
+          url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+          flag: '演示线路',
+        ),
+        const Episode(
+          name: 'Sintel',
+          url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+          flag: '演示线路',
+        ),
+        const Episode(
+          name: 'Tears of Steel',
+          url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+          flag: '演示线路2',
+        ),
       ],
     );
   }

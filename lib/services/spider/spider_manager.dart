@@ -7,6 +7,7 @@ import 'drpy/drpy_spider.dart';
 import 'drpy/drpy_web_spider.dart';
 import 'python/python_spider.dart';
 import 'mock_spider.dart';
+import 'json_cms_spider.dart';
 
 /// 爬虫管理器：负责创建、缓存、切换不同引擎
 class SpiderManager {
@@ -25,9 +26,18 @@ class SpiderManager {
       case SourceType.html:
         return MockSpider(source);
       case SourceType.json:
+        if (source.api.startsWith('http://') || source.api.startsWith('https://')) {
+          return JsonCmsSpider(source);
+        }
+        if (source.api.contains('drpy') || source.api.contains('var rule')) {
+          return DrpyWebSpider(source);
+        }
+        return MockSpider(source);
       case SourceType.other:
       default:
-        // api 指向 drpy 演示时也走 Drpy
+        if (source.api.startsWith('http://') || source.api.startsWith('https://')) {
+          return JsonCmsSpider(source);
+        }
         if (source.api.contains('drpy') || source.api.contains('var rule')) {
           return DrpyWebSpider(source);
         }

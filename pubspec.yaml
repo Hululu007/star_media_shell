@@ -46,6 +46,7 @@ dependencies:
   wakelock_plus: ^1.2.8
   # 系统亮度改为本地手势反馈（不依赖 screen_brightness 插件）
   volume_controller: 2.0.8
+  file_picker: ^8.1.4
 
 dev_dependencies:
   flutter_test:

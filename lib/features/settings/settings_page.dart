@@ -293,6 +293,18 @@ class SettingsPage extends ConsumerWidget {
             child: ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.cloud_download_outlined),
+              title: const Text('添加资源'),
+              subtitle: const Text('TVBox 订阅 / 粘贴配置 / 本地导入'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => context.push('/source/add'),
+            ),
+          ),
+          const SizedBox(height: 12),
+          GlassContainer(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.cloud_download_outlined),
               title: const Text('源订阅仓库'),
               subtitle: const Text('远程仓库同步影视源'),
               trailing: const Icon(Icons.chevron_right_rounded),

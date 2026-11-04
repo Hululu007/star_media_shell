@@ -7,6 +7,7 @@ import '../models/live_channel.dart';
 /// m3u / m3u8 直播列表解析（对标催壳直播订阅）
 class LiveService {
   static const _prefUrl = 'live_m3u_url';
+  static const _prefLocal = 'live_m3u_local_body';
 
   final Dio _dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 12),
@@ -26,6 +27,16 @@ class LiveService {
   Future<void> saveUrl(String url) async {
     final p = await SharedPreferences.getInstance();
     await p.setString(_prefUrl, url.trim());
+  }
+
+  Future<void> saveLocalBody(String body) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setString(_prefLocal, body);
+  }
+
+  Future<String?> loadLocalBody() async {
+    final p = await SharedPreferences.getInstance();
+    return p.getString(_prefLocal);
   }
 
   /// 解析 m3u 文本
@@ -93,6 +104,11 @@ final liveServiceProvider = Provider((ref) => LiveService());
 final liveChannelsAsyncProvider =
     FutureProvider<List<LiveChannel>>((ref) async {
   final svc = ref.watch(liveServiceProvider);
+  final local = await svc.loadLocalBody();
+  if (local != null && local.trim().isNotEmpty) {
+    final list = svc.parseM3u(local);
+    if (list.isNotEmpty) return list;
+  }
   final url = await svc.getSavedUrl();
   if (url != null && url.startsWith('http')) {
     try {
