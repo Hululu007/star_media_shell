@@ -92,6 +92,13 @@ jobs:
           if [ -f android/gradle.properties ]; then
             grep -q kotlin.jvm.target.validation.mode android/gradle.properties || echo "kotlin.jvm.target.validation.mode=warning" >> android/gradle.properties
           fi
+
+          # Force Kotlin 2.1+ (package plugins need modern metadata)
+          for f in android/settings.gradle android/settings.gradle.kts; do
+            [ -f "$f" ] || continue
+            sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "2.1.0"/' "$f" || true
+            sed -i 's/id("org.jetbrains.kotlin.android") version "[^"]*"/id("org.jetbrains.kotlin.android") version "2.1.0"/' "$f" || true
+          done
           echo MERGE_OK
           ls android/app/src/main/kotlin/com/starmedia/shell/ || true
           echo "--- app build file head ---"
