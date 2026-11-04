@@ -32,75 +32,74 @@ jobs:
       - name: Flutter doctor
         run: flutter doctor -v
 
-      - name: Backup custom native sources
+      - name: Scaffold Android (move custom aside first)
         run: |
-          mkdir -p /tmp/sms_backup
-          cp -a android /tmp/sms_backup/android || true
-          ls -la /tmp/sms_backup/android/app/src/main/kotlin/com/starmedia/shell/ || true
+          set -euo pipefail
+          # 关键失败点：不完整的 android/ 会让 flutter create 直接退出
+          if [ -d android ]; then
+            mv android android_custom
+          fi
+          flutter create . --platforms=android --project-name star_media_shell
+          test -d android/app
 
-      - name: Generate Android scaffolding
+      - name: Merge custom Kotlin / Manifest / Chaquopy
         run: |
-          # 已有工程不要再传 --project-name / --org（会直接失败）
-          flutter create . --platforms=android
-          test -f android/app/build.gradle || test -f android/app/build.gradle.kts
+          set -euo pipefail
+          CUSTOM=android_custom
+          test -d "$CUSTOM" || { echo "no custom android"; exit 0; }
 
-      - name: Restore Kotlin + merge Chaquopy
-        run: |
-          set -e
-          # 恢复 Kotlin 源码
+          # Kotlin
           mkdir -p android/app/src/main/kotlin/com/starmedia/shell
-          cp -a /tmp/sms_backup/android/app/src/main/kotlin/com/starmedia/shell/. \
-            android/app/src/main/kotlin/com/starmedia/shell/ || true
-
-          # 恢复我们维护的 Manifest / CHAQUOPY 文档等
-          if [ -f /tmp/sms_backup/android/app/src/main/AndroidManifest.xml ]; then
-            cp /tmp/sms_backup/android/app/src/main/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
-          fi
-          # 资源
-          if [ -d /tmp/sms_backup/android/app/src/main/res ]; then
-            cp -a /tmp/sms_backup/android/app/src/main/res/. android/app/src/main/res/ || true
+          if [ -d "$CUSTOM/app/src/main/kotlin" ]; then
+            cp -a "$CUSTOM/app/src/main/kotlin/." android/app/src/main/kotlin/
           fi
 
-          # —— 合并 settings.gradle：声明 Chaquopy 插件 ——
-          if [ -f android/settings.gradle ]; then
-            if ! grep -q 'com.chaquo.python' android/settings.gradle; then
-              # Groovy settings
-              if grep -q 'plugins {' android/settings.gradle; then
-                sed -i '/plugins {/a\    id "com.chaquo.python" version "17.2.0" apply false' android/settings.gradle
+          # Manifest：强制 StarApplication + 网络权限
+          MAN=android/app/src/main/AndroidManifest.xml
+          if [ -f "$CUSTOM/app/src/main/AndroidManifest.xml" ]; then
+            cp "$CUSTOM/app/src/main/AndroidManifest.xml" "$MAN"
+          fi
+          # 若生成的 package 与命名空间不一致，至少保证 INTERNET
+          if ! grep -q 'android.permission.INTERNET' "$MAN"; then
+            sed -i 's#<manifest#<manifest>\n    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>\n    <!-- #' "$MAN" || true
+          fi
+
+          # res extras
+          if [ -d "$CUSTOM/app/src/main/res" ]; then
+            cp -a "$CUSTOM/app/src/main/res/." android/app/src/main/res/ || true
+          fi
+
+          # settings.gradle 注入 Chaquopy 插件声明
+          for f in android/settings.gradle android/settings.gradle.kts; do
+            [ -f "$f" ] || continue
+            if ! grep -q 'com.chaquo.python' "$f"; then
+              if [[ "$f" == *.kts ]]; then
+                sed -i '/plugins {/a\    id("com.chaquo.python") version "17.2.0" apply false' "$f"
+              else
+                sed -i '/plugins {/a\    id "com.chaquo.python" version "17.2.0" apply false' "$f"
               fi
             fi
-          fi
-          if [ -f android/settings.gradle.kts ]; then
-            if ! grep -q 'com.chaquo.python' android/settings.gradle.kts; then
-              sed -i '/plugins {/a\    id("com.chaquo.python") version "17.2.0" apply false' android/settings.gradle.kts
-            fi
-          fi
+          done
 
-          # —— 合并 app/build.gradle ——
-          APP_G=android/app/build.gradle
-          APP_K=android/app/build.gradle.kts
-          if [ -f "$APP_G" ]; then
-            if ! grep -q 'com.chaquo.python' "$APP_G"; then
-              sed -i '/^plugins {/a\    id "com.chaquo.python"' "$APP_G"
-            fi
-            if ! grep -q 'python {' "$APP_G"; then
-              # 在 defaultConfig 块内注入（简单追加到 android 闭包前不稳，用文件尾依赖外注入脚本）
-              python3 << 'PY'
+          # app build.gradle 注入插件与 python 块
+          python3 << 'PY'
 from pathlib import Path
-p = Path("android/app/build.gradle")
-t = p.read_text()
-if "python {" not in t:
-    inject = '''
-    // Chaquopy
-    defaultConfig {
-        // patched below if duplicate — see merge
-    }
-'''
-    # inject ndk + python into existing defaultConfig
-    if "defaultConfig {" in t and "abiFilters" not in t:
-        t = t.replace(
-            "defaultConfig {",
-            '''defaultConfig {
+import re
+
+for name in ["android/app/build.gradle", "android/app/build.gradle.kts"]:
+    p = Path(name)
+    if not p.exists():
+        continue
+    t = p.read_text()
+    is_kts = name.endswith(".kts")
+    if "com.chaquo.python" not in t:
+        if is_kts:
+            t = t.replace("plugins {", 'plugins {\n    id("com.chaquo.python")', 1)
+        else:
+            t = t.replace("plugins {", 'plugins {\n    id "com.chaquo.python"', 1)
+
+    if "python {" not in t and "defaultConfig" in t:
+        block = '''
         ndk {
             abiFilters "armeabi-v7a", "arm64-v8a", "x86_64"
         }
@@ -116,37 +115,40 @@ if "python {" not in t:
                 install "lxml"
                 install "pycryptodome"
             }
-        }''',
-            1,
-        )
-    if "minSdk" in t and "Math.max" not in t:
-        import re
-        t = re.sub(r"minSdk\s*=\s*[^\n]+", "minSdk = Math.max(flutter.minSdkVersion, 24)", t, count=1)
-        t = re.sub(r"minSdkVersion\s+[^\n]+", "minSdkVersion Math.max(flutter.minSdkVersion, 24)", t, count=1)
+        }
+'''
+        if is_kts:
+            block = '''
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
+        }
+'''
+            # kts python DSL may differ; skip pip on kts to avoid syntax issues
+        t = t.replace("defaultConfig {", "defaultConfig {" + block, 1)
+
+    # minSdk 24+
+    t2 = re.sub(r"minSdk\s*=\s*flutter\.minSdkVersion", "minSdk = Math.max(flutter.minSdkVersion, 24)", t)
+    t2 = re.sub(r"minSdkVersion\s+flutter\.minSdkVersion", "minSdkVersion Math.max(flutter.minSdkVersion, 24)", t2)
+    t = t2
+
+    # applicationId / namespace 对齐
+    if "com.starmedia.shell" not in t and "namespace" in t:
+        t = re.sub(r'namespace\s*=\s*"[^"]+"', 'namespace = "com.starmedia.shell"', t)
+        t = re.sub(r'applicationId\s*=\s*"[^"]+"', 'applicationId = "com.starmedia.shell"', t)
+
     p.write_text(t)
-    print("app/build.gradle patched")
+    print("patched", name)
+
+# 确认 MainActivity 包名目录
+print("kotlin tree:")
+import os
+for root, dirs, files in os.walk("android/app/src/main/kotlin"):
+    for f in files:
+        print(os.path.join(root, f))
 PY
-            fi
-          fi
-
-          if [ -f "$APP_K" ]; then
-            if ! grep -q 'com.chaquo.python' "$APP_K"; then
-              sed -i '/^plugins {/a\    id("com.chaquo.python")' "$APP_K"
-            fi
-          fi
-
-          # Application name
-          MAN=android/app/src/main/AndroidManifest.xml
-          if [ -f "$MAN" ]; then
-            if ! grep -q 'StarApplication' "$MAN"; then
-              sed -i 's/<application/<application android:name=".StarApplication"/' "$MAN" || true
-            fi
-          fi
 
           mkdir -p assets/images assets/icons assets/js assets/media assets/python
-          echo "merge done"
-          ls android/app/src/main/kotlin/com/starmedia/shell/
-          grep -n 'chaquo\|python\|StarApplication' android/settings.gradle android/app/build.gradle android/app/src/main/AndroidManifest.xml 2>/dev/null || true
+          echo "MERGE_OK"
 
       - name: Flutter pub get
         run: flutter pub get
