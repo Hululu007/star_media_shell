@@ -1,0 +1,148 @@
+<!--
+  多图标配置说明（对标 BieCuiLe）
+  =====================================
+  使用方式：
+  1. flutter create . 生成完整 android 工程后
+  2. 把下面 <activity-alias> 段合并进
+     android/app/src/main/AndroidManifest.xml
+  3. 主 Activity 的 LAUNCHER 只保留一个默认，其余用 alias
+  4. 图标资源放到 res/mipmap-* 或使用 adaptive-icon XML
+
+  包名请按你实际 applicationId 修改（示例：com.starmedia.shell）
+-->
+
+<!-- 在 <application> 内，主 Activity 示例： -->
+<!--
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme"/>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity>
+-->
+
+<!-- ========== 多图标 activity-alias（默认全部 enabled=false，由代码切换） ========== -->
+
+        <!-- 图标：星辰默认 -->
+        <activity-alias
+            android:name=".icon.default_star"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_star"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 图标：液态蓝 -->
+        <activity-alias
+            android:name=".icon.blob_blue"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_blob_blue"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 图标：薄荷绿 -->
+        <activity-alias
+            android:name=".icon.blob_mint"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_blob_mint"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 图标：珊瑚橙 -->
+        <activity-alias
+            android:name=".icon.blob_coral"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_blob_coral"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 图标：画家猫 -->
+        <activity-alias
+            android:name=".icon.painter_cat"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_painter_cat"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 图标：画家企鹅 -->
+        <activity-alias
+            android:name=".icon.painter_penguin"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_painter_penguin"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 图标：简约线框 -->
+        <activity-alias
+            android:name=".icon.line_minimal"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_line"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+
+<!--
+  注意：
+  - 主 Activity 上的 LAUNCHER intent-filter 建议去掉，只保留 alias，
+    否则桌面会出现多个图标。
+  - 或者主 Activity 保留默认，alias 全部 enabled=false，由代码切换时
+    禁用主 LAUNCHER、启用对应 alias（更常见）。
+-->

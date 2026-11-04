@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 占位自适应图标：请替换为真实前景/背景资源 -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background_blob_blue"/>
+    <foreground android:drawable="@drawable/ic_launcher_foreground_stub"/>
+</adaptive-icon>

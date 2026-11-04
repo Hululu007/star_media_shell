@@ -1,0 +1,3 @@
+// 已合并进 app/build.gradle，此文件仅作备份参考。
+// plugins { id "com.chaquo.python" }
+// defaultConfig { ndk { abiFilters ... } python { version "3.11" } }

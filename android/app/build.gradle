@@ -1,0 +1,64 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+    id "com.chaquo.python"
+}
+
+android {
+    namespace = "com.starmedia.shell"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+
+    defaultConfig {
+        applicationId = "com.starmedia.shell"
+        // Chaquopy 17 要求 minSdk >= 24
+        minSdk = Math.max(flutter.minSdkVersion, 24)
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+
+        ndk {
+            // 按需裁剪以减小体积；模拟器可保留 x86_64
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86_64"
+        }
+
+        python {
+            version "3.11"
+            // 构建时通过 pip 打进 APK（对标催壳常用依赖）
+            pip {
+                install "requests"
+                install "urllib3"
+                install "certifi"
+                install "charset-normalizer"
+                install "idna"
+                install "beautifulsoup4"
+                install "lxml"
+                install "pycryptodome"
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+            minifyEnabled false
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+}

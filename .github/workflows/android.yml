@@ -1,0 +1,63 @@
+name: Android Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Create Android platform if needed
+        run: |
+          if [ ! -f android/app/src/main/kotlin/com/starmedia/shell/MainActivity.kt ]; then
+            echo "MainActivity missing"
+          fi
+          # Ensure flutter android project files exist
+          flutter create . --project-name star_media_shell --platforms=android || true
+
+      - name: Restore Chaquopy / custom Android files
+        run: |
+          # flutter create may overwrite; re-apply critical snippets if markers missing
+          if ! grep -q 'com.chaquo.python' android/settings.gradle 2>/dev/null; then
+            echo "WARNING: Chaquopy not in settings.gradle — check repo android templates"
+          fi
+          grep -n 'chaquo\|StarApplication\|python' android/settings.gradle android/app/build.gradle android/app/src/main/AndroidManifest.xml || true
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos || true
+
+      - name: Build APK (debug)
+        run: flutter build apk --debug
+        # Chaquopy + pip 首次构建较慢
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: star-media-shell-debug-apk
+          path: build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: warn

@@ -1,0 +1,72 @@
+name: star_media_shell
+description: 星辰影音 - 高颜值多运行时影视壳（对标 BieCuiLe 设计）
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # 状态管理
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # 路由
+  go_router: ^14.6.2
+
+  # 本地存储
+  shared_preferences: ^2.3.3
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # 网络
+  dio: ^5.7.0
+
+  # UI & 动画
+  flutter_animate: ^4.5.0
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  google_fonts: ^6.2.1
+
+  # JS 运行时 (Drpy2)
+  flutter_js: ^0.8.1
+  webview_flutter: ^4.10.0
+  webview_flutter_android: ^4.0.0
+
+  # 播放器
+  media_kit: ^1.1.11
+  media_kit_video: ^1.2.5
+  media_kit_libs_android_video: ^1.3.6
+  media_kit_libs_ios_video: ^1.1.4
+
+  # 工具
+  collection: ^1.18.0
+  equatable: ^2.0.5
+  uuid: ^4.5.1
+  path_provider: ^2.1.5
+  intl: any
+  wakelock_plus: ^1.2.8
+  screen_brightness: ^2.0.0+2
+  volume_controller: ^2.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  riverpod_generator: ^2.6.2
+  build_runner: ^2.4.13
+  hive_generator: ^2.0.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/js/
+    - assets/media/
+    - assets/python/

@@ -1,0 +1,18 @@
+[
+  {"time": 1.0, "text": "外挂弹幕源加载成功", "mode": 1, "color": "#74B9FF"},
+  {"time": 2.5, "text": "JSON 协议演示", "mode": 1, "color": "#55EFC4"},
+  {"time": 4.0, "text": "前排围观", "mode": 5, "color": "#FDCB6E"},
+  {"time": 5.5, "text": "高清真舒服", "mode": 1, "color": "#FFFFFF"},
+  {"time": 7.0, "text": "星辰影音 yyds", "mode": 1, "color": "#FD79A8"},
+  {"time": 9.0, "text": "底部弹幕", "mode": 4, "color": "#A29BFE"},
+  {"time": 11.0, "text": "支持 B站 XML / JSON / 纯文本", "mode": 1, "color": "#74B9FF"},
+  {"time": 13.0, "text": "233333", "mode": 1, "color": "#FFFFFF"},
+  {"time": 15.0, "text": "好活", "mode": 1, "color": "#55EFC4"},
+  {"time": 17.0, "text": "妙啊", "mode": 5, "color": "#FF7675"},
+  {"time": 19.0, "text": "自动连播也在", "mode": 1, "color": "#FFFFFF"},
+  {"time": 21.0, "text": "继续优化中", "mode": 1, "color": "#FDCB6E"},
+  {"time": 24.0, "text": "弹幕密度测试 1", "mode": 1, "color": "#FFFFFF"},
+  {"time": 24.2, "text": "弹幕密度测试 2", "mode": 1, "color": "#74B9FF"},
+  {"time": 24.4, "text": "弹幕密度测试 3", "mode": 1, "color": "#FD79A8"},
+  {"time": 28.0, "text": "感谢观看", "mode": 5, "color": "#55EFC4"}
+]
