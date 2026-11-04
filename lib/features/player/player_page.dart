@@ -174,8 +174,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
       _brightness = await ScreenBrightness().current;
     } catch (_) {}
     try {
-      VolumeController().showSystemUI = false;
-      _volume = await VolumeController().getVolume();
+      VolumeController.instance.showSystemUI = false;
+      _volume = await VolumeController.instance.getVolume();
     } catch (_) {}
   }
 
@@ -606,7 +606,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
           // 右半屏：音量
           final delta = -dy / size.height;
           _volumePreview = (_volume + delta).clamp(0.0, 1.0);
-          VolumeController().setVolume(_volumePreview!);
+          VolumeController.instance.setVolume(_volumePreview!);
           setState(() {});
         }
       }
@@ -631,7 +631,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
       final delta = -dy / size.height;
       final v = (_volume + delta).clamp(0.0, 1.0);
       _volumePreview = v;
-      VolumeController().setVolume(v);
+      VolumeController.instance.setVolume(v);
       setState(() {});
     }
   }

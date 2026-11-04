@@ -52,7 +52,7 @@ dependencies:
   intl: any
   wakelock_plus: ^1.2.8
   screen_brightness: ^2.0.0
-  volume_controller: 2.0.8
+  volume_controller: ^3.4.4
 
 dev_dependencies:
   flutter_test:
