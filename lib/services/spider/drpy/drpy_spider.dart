@@ -75,7 +75,7 @@ class DrpySpider extends BaseSpider {
     // 也尝试从 lastResult 取
     raw ??= _host?.lastResult;
 
-    final classes = <Category>[];
+    final classes = <VodCategory>[];
     final list = <Vod>[];
 
     if (raw is Map) {
@@ -83,7 +83,7 @@ class DrpySpider extends BaseSpider {
       if (classList is List) {
         for (final c in classList) {
           if (c is Map) {
-            classes.add(Category.fromJson(Map<String, dynamic>.from(c)));
+            classes.add(VodCategory.fromJson(Map<String, dynamic>.from(c)));
           }
         }
       }
@@ -108,8 +108,8 @@ class DrpySpider extends BaseSpider {
     // 如果规则没返回分类，给默认
     if (classes.isEmpty && list.isNotEmpty) {
       classes.addAll(const [
-        Category(typeId: '1', typeName: '电影'),
-        Category(typeId: '2', typeName: '剧集'),
+        VodCategory(typeId: '1', typeName: '电影'),
+        VodCategory(typeId: '2', typeName: '剧集'),
       ]);
     }
 

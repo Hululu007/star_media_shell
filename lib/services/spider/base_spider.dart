@@ -44,7 +44,7 @@ class HomeResult {
     this.filters = const {},
   });
 
-  final List<Category> classes;
+  final List<VodCategory> classes;
   final List<Vod> list;
   final Map<String, dynamic> filters;
 }

@@ -23,11 +23,11 @@ class MockSpider extends BaseSpider {
 
     return HomeResult(
       classes: const [
-        Category(typeId: '1', typeName: '电影'),
-        Category(typeId: '2', typeName: '剧集'),
-        Category(typeId: '3', typeName: '综艺'),
-        Category(typeId: '4', typeName: '动漫'),
-        Category(typeId: '5', typeName: '纪录片'),
+        VodCategory(typeId: '1', typeName: '电影'),
+        VodCategory(typeId: '2', typeName: '剧集'),
+        VodCategory(typeId: '3', typeName: '综艺'),
+        VodCategory(typeId: '4', typeName: '动漫'),
+        VodCategory(typeId: '5', typeName: '纪录片'),
       ],
       list: _mockList(12),
       filters: const {

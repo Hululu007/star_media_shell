@@ -105,8 +105,8 @@ class Episode extends Equatable {
 }
 
 /// 分类
-class Category extends Equatable {
-  const Category({
+class VodCategory extends Equatable {
+  const VodCategory({
     required this.typeId,
     required this.typeName,
     this.flag,
@@ -116,8 +116,8 @@ class Category extends Equatable {
   final String typeName;
   final String? flag;
 
-  factory Category.fromJson(Map<String, dynamic> json) {
-    return Category(
+  factory VodCategory.fromJson(Map<String, dynamic> json) {
+    return VodCategory(
       typeId: json['type_id']?.toString() ?? json['id']?.toString() ?? '',
       typeName: json['type_name']?.toString() ?? json['name']?.toString() ?? '',
       flag: json['flag']?.toString(),

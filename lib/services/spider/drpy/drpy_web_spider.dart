@@ -160,14 +160,14 @@ class DrpyWebSpider extends BaseSpider {
   }
 
   HomeResult _parseHome(dynamic raw) {
-    final classes = <Category>[];
+    final classes = <VodCategory>[];
     final list = <Vod>[];
     if (raw is Map) {
       final classList = raw['class'] ?? raw['classes'] ?? [];
       if (classList is List) {
         for (final c in classList) {
           if (c is Map) {
-            classes.add(Category.fromJson(Map<String, dynamic>.from(c)));
+            classes.add(VodCategory.fromJson(Map<String, dynamic>.from(c)));
           }
         }
       }
@@ -180,8 +180,8 @@ class DrpyWebSpider extends BaseSpider {
     }
     if (classes.isEmpty && list.isNotEmpty) {
       classes.addAll(const [
-        Category(typeId: '1', typeName: '电影'),
-        Category(typeId: '2', typeName: '剧集'),
+        VodCategory(typeId: '1', typeName: '电影'),
+        VodCategory(typeId: '2', typeName: '剧集'),
       ]);
     }
     return HomeResult(classes: classes, list: list);

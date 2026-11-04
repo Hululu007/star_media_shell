@@ -153,14 +153,14 @@ class PythonSpider extends BaseSpider {
   }
 
   HomeResult _parseHome(dynamic raw) {
-    final classes = <Category>[];
+    final classes = <VodCategory>[];
     final list = <Vod>[];
     if (raw is Map) {
       final classList = raw['class'] ?? [];
       if (classList is List) {
         for (final c in classList) {
           if (c is Map) {
-            classes.add(Category.fromJson(Map<String, dynamic>.from(c)));
+            classes.add(VodCategory.fromJson(Map<String, dynamic>.from(c)));
           }
         }
       }
