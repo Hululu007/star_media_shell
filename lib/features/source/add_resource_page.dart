@@ -76,36 +76,11 @@ class AddResourcePage extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          _SectionLabel('媒体服务器（占位）'),
-          _GroupCard(
-            children: [
-              _Item(
-                color: const Color(0xFF22C55E),
-                icon: Icons.play_circle_rounded,
-                title: 'Emby 服务器',
-                subtitle: '即将支持账号登录与媒体库',
-                onTap: () => _soon(context),
-              ),
-              _Item(
-                color: const Color(0xFF3B82F6),
-                icon: Icons.view_in_ar_rounded,
-                title: 'Jellyfin / 飞牛影视',
-                subtitle: '即将支持 NAS 媒体服务',
-                onTap: () => _soon(context),
-              ),
-            ],
-          ),
-        ],
+                  ],
       ),
     );
   }
 
-  void _soon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('该类型将在后续版本接入')),
-    );
-  }
 
   Future<void> _tvboxSubscribe(BuildContext context, WidgetRef ref) async {
     final nameC = TextEditingController(text: 'TVBox 订阅');
