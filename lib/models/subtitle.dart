@@ -20,8 +20,8 @@ class SubtitleCue extends Equatable {
 }
 
 /// 字幕轨
-class SubtitleTrack extends Equatable {
-  const SubtitleTrack({
+class AppSubtitleTrack extends Equatable {
+  const AppSubtitleTrack({
     required this.id,
     required this.label,
     this.language,
@@ -38,7 +38,7 @@ class SubtitleTrack extends Equatable {
   final bool isBuiltIn;
 
   SubtitleTrack copyWith({List<SubtitleCue>? cues}) {
-    return SubtitleTrack(
+    return AppSubtitleTrack(
       id: id,
       label: label,
       language: language,

@@ -123,7 +123,7 @@ class PlayerMoreOptions {
   final String subtitleId;
   final double danmakuOpacity;
   final double speed;
-  final List<SubtitleTrack> subtitleTracks;
+  final List<AppSubtitleTrack> subtitleTracks;
   final List<double> speeds;
   final bool autoNext;
 }

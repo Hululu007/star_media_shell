@@ -25,8 +25,6 @@ class SourcePage extends ConsumerWidget {
             icon: const Icon(Icons.cloud_download_outlined, size: 18),
             label: const Text('仓库'),
           ),
-        ],
-        actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded),
             onPressed: () => _showAddDialog(context, ref),

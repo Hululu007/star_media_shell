@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:media_kit/media_kit.dart';
+import 'package:media_kit/media_kit.dart' hide SubtitleTrack;
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:volume_controller/volume_controller.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -80,7 +80,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   String? _currentFlag;
 
   // 字幕 / 弹幕
-  List<SubtitleTrack> _subtitleTracks = [];
+  List<AppSubtitleTrack> _subtitleTracks = [];
   String _subtitleId = 'demo_zh';
   List<SubtitleCue> _activeCues = [];
   bool _subtitleOn = true;
@@ -182,8 +182,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     final subSvc = ref.read(subtitleServiceProvider);
     final danSvc = ref.read(danmakuServiceProvider);
 
-    final tracks = <SubtitleTrack>[
-      const SubtitleTrack(id: 'off', label: '关闭', isBuiltIn: true),
+    final tracks = <AppSubtitleTrack>[
+      const AppSubtitleTrack(id: 'off', label: '关闭', isBuiltIn: true),
     ];
     var loadedExternal = false;
     for (var i = 0; i < result.subtitles.length; i++) {

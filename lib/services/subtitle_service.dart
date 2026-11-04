@@ -34,14 +34,14 @@ class SubtitleService {
     return parseSrt(body);
   }
 
-  Future<SubtitleTrack> loadTrack({
+  Future<AppSubtitleTrack> loadTrack({
     required String id,
     required String label,
     required String url,
     String? language,
   }) async {
     final cues = await loadFromUrl(url);
-    return SubtitleTrack(
+    return AppSubtitleTrack(
       id: id,
       label: label,
       language: language,
@@ -110,10 +110,10 @@ class SubtitleService {
     return Duration.zero;
   }
 
-  List<SubtitleTrack> demoTracks() {
+  List<AppSubtitleTrack> demoTracks() {
     return [
-      const SubtitleTrack(id: 'off', label: '关闭', isBuiltIn: true),
-      SubtitleTrack(
+      const AppSubtitleTrack(id: 'off', label: '关闭', isBuiltIn: true),
+      AppSubtitleTrack(
         id: 'demo_zh',
         label: '中文（内置）',
         language: 'zh',
