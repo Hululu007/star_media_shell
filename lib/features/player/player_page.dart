@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:screen_brightness/screen_brightness.dart';
 import 'package:volume_controller/volume_controller.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -170,16 +169,11 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   }
 
   Future<void> _initBrightnessVolume() async {
+    // 亮度：仅 UI 手势反馈（避免 screen_brightness_android Kotlin 构建失败）
+    _brightness = 0.5;
     try {
-      _brightness = await ScreenBrightness.instance.current;
-    } catch (_) {
-      try {
-        _brightness = await ScreenBrightness().current;
-      } catch (_) {}
-    }
-    try {
-      VolumeController.instance.showSystemUI = false;
-      _volume = await VolumeController.instance.getVolume();
+      VolumeController().showSystemUI = false;
+      _volume = await VolumeController().getVolume();
     } catch (_) {}
   }
 
@@ -604,13 +598,13 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
           // 左半屏：亮度
           final delta = -dy / size.height;
           _brightnessPreview = (_brightness + delta).clamp(0.0, 1.0);
-          ScreenBrightness.instance.setScreenBrightness(_brightnessPreview!);
+          // system brightness plugin removed for CI
           setState(() {});
         } else {
           // 右半屏：音量
           final delta = -dy / size.height;
           _volumePreview = (_volume + delta).clamp(0.0, 1.0);
-          VolumeController.instance.setVolume(_volumePreview!);
+          VolumeController().setVolume(_volumePreview!);
           setState(() {});
         }
       }
@@ -629,13 +623,13 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
       final delta = -dy / size.height;
       final v = (_brightness + delta).clamp(0.0, 1.0);
       _brightnessPreview = v;
-      ScreenBrightness.instance.setScreenBrightness(v);
+      // system brightness plugin removed for CI
       setState(() {});
     } else if (_volumePreview != null) {
       final delta = -dy / size.height;
       final v = (_volume + delta).clamp(0.0, 1.0);
       _volumePreview = v;
-      VolumeController.instance.setVolume(v);
+      VolumeController().setVolume(v);
       setState(() {});
     }
   }
