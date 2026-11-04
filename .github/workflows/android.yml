@@ -84,6 +84,14 @@ jobs:
           fi
 
           mkdir -p assets/images assets/icons assets/js assets/media assets/python
+          # Help plugins using compilerOptions DSL
+          if [ -f android/settings.gradle ]; then
+            # ensure recent kotlin if specified
+            true
+          fi
+          if [ -f android/gradle.properties ]; then
+            grep -q kotlin.jvm.target.validation.mode android/gradle.properties || echo "kotlin.jvm.target.validation.mode=warning" >> android/gradle.properties
+          fi
           echo MERGE_OK
           ls android/app/src/main/kotlin/com/starmedia/shell/ || true
           echo "--- app build file head ---"

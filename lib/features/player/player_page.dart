@@ -171,8 +171,12 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
 
   Future<void> _initBrightnessVolume() async {
     try {
-      _brightness = await ScreenBrightness().current;
-    } catch (_) {}
+      _brightness = await ScreenBrightness.instance.current;
+    } catch (_) {
+      try {
+        _brightness = await ScreenBrightness().current;
+      } catch (_) {}
+    }
     try {
       VolumeController.instance.showSystemUI = false;
       _volume = await VolumeController.instance.getVolume();
@@ -600,7 +604,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
           // 左半屏：亮度
           final delta = -dy / size.height;
           _brightnessPreview = (_brightness + delta).clamp(0.0, 1.0);
-          ScreenBrightness().setScreenBrightness(_brightnessPreview!);
+          ScreenBrightness.instance.setScreenBrightness(_brightnessPreview!);
           setState(() {});
         } else {
           // 右半屏：音量
@@ -625,7 +629,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
       final delta = -dy / size.height;
       final v = (_brightness + delta).clamp(0.0, 1.0);
       _brightnessPreview = v;
-      ScreenBrightness().setScreenBrightness(v);
+      ScreenBrightness.instance.setScreenBrightness(v);
       setState(() {});
     } else if (_volumePreview != null) {
       final delta = -dy / size.height;
