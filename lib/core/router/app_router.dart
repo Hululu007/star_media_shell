@@ -147,50 +147,106 @@ class MainShell extends StatelessWidget {
   const MainShell({super.key, required this.navigationShell});
   final StatefulNavigationShell navigationShell;
 
+  static const _labels = ['媒体', '收藏', '历史', '资源', '设置'];
+  static const _icons = [
+    Icons.play_circle_outline_rounded,
+    Icons.favorite_border_rounded,
+    Icons.history_rounded,
+    Icons.inventory_2_outlined,
+    Icons.settings_outlined,
+  ];
+  static const _iconsSelected = [
+    Icons.play_circle_rounded,
+    Icons.favorite_rounded,
+    Icons.history_rounded,
+    Icons.inventory_2_rounded,
+    Icons.settings_rounded,
+  ];
+
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final idx = navigationShell.currentIndex;
     return Scaffold(
       body: navigationShell,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/search'),
-        child: const Icon(Icons.search_rounded),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (index) {
-          navigationShell.goBranch(
-            index,
-            initialLocation: index == navigationShell.currentIndex,
-          );
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.play_circle_outline_rounded),
-            selectedIcon: Icon(Icons.play_circle_rounded),
-            label: '媒体',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.favorite_border_rounded),
-            selectedIcon: Icon(Icons.favorite_rounded),
-            label: '收藏',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.history_rounded),
-            selectedIcon: Icon(Icons.history_rounded),
-            label: '历史',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2_rounded),
-            label: '资源',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings_rounded),
-            label: '设置',
-          ),
-        ],
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        child: Row(
+          children: [
+            Expanded(
+              child: Material(
+                elevation: 3,
+                shadowColor: Colors.black26,
+                borderRadius: BorderRadius.circular(28),
+                color: cs.surface,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                  child: Row(
+                    children: List.generate(5, (i) {
+                      final sel = i == idx;
+                      return Expanded(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(22),
+                          onTap: () => navigationShell.goBranch(
+                            i,
+                            initialLocation: i == idx,
+                          ),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 180),
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            decoration: BoxDecoration(
+                              color: sel
+                                  ? cs.primary.withOpacity(0.12)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(22),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  sel ? _iconsSelected[i] : _icons[i],
+                                  size: 22,
+                                  color: sel ? cs.primary : cs.onSurfaceVariant,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _labels[i],
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight:
+                                        sel ? FontWeight.w700 : FontWeight.w500,
+                                    color:
+                                        sel ? cs.primary : cs.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Material(
+              elevation: 3,
+              shadowColor: Colors.black26,
+              shape: const CircleBorder(),
+              color: cs.surface,
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () => context.push('/search'),
+                child: const SizedBox(
+                  width: 52,
+                  height: 52,
+                  child: Icon(Icons.search_rounded),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -122,15 +122,32 @@ class ResourceImportService {
   Future<ImportResult> subscribeTvBox(String name, String url) async {
     url = url.trim();
     if (url.isEmpty) return const ImportResult(message: '地址为空');
+    final display = name.trim().isEmpty ? 'TVBox 订阅' : name.trim();
     final repo = SourceRepo(
       id: 'tvbox_${url.hashCode.abs()}',
-      name: name.trim().isEmpty ? 'TVBox 订阅' : name.trim(),
+      name: display,
       url: url,
     );
     await _repos.addRepo(repo);
     final sync = await _repos.syncRepo(repo);
+    // 资源页展示：一条订阅卡片 + 站点数
+    final key = 'sub_${url.hashCode.abs()}';
+    final sub = Source(
+      key: key,
+      name: display,
+      api: url,
+      type: SourceType.json,
+      siteCount: sync.total,
+      lastUsedAt: DateTime.now(),
+      order: 0,
+    );
+    try {
+      await _sources.addSource(sub);
+    } catch (_) {
+      await _sources.updateSource(sub);
+    }
     return ImportResult(
-      message: '同步完成：新增 ${sync.added}，更新 ${sync.updated}，共 ${sync.total}',
+      message: '同步完成：新增 ${sync.added}，更新 ${sync.updated}，共 ${sync.total} 站',
       sourcesAdded: sync.added,
       reposAdded: 1,
     );

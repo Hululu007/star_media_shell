@@ -11,44 +11,54 @@ import '../../services/resource_import_service.dart';
 import '../../services/source_repo_service.dart';
 import '../../services/source_service.dart';
 
-/// 添加资源（对标完整资源中心入口）
+/// 添加资源 — 原版分组卡片样式
 class AddResourcePage extends ConsumerWidget {
   const AddResourcePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
+      backgroundColor: cs.surfaceContainerHighest.withOpacity(0.35),
       appBar: AppBar(
-        title: const Text('添加资源'),
+        backgroundColor: Colors.transparent,
+        title: const Text('添加资源',
+            style: TextStyle(fontWeight: FontWeight.w800)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close_rounded),
+            onPressed: () => Navigator.maybePop(context),
+          ),
+        ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
         children: [
-          _SectionLabel('影视源'),
-          _GroupCard(
+          _Label('影视源'),
+          _Card(
             children: [
-              _Item(
+              _RowItem(
                 color: const Color(0xFF3B82F6),
                 icon: Icons.layers_rounded,
                 title: 'TVBox 影视源',
                 subtitle: '填配置地址，聚合多个点播平台',
-                onTap: () => _tvboxSubscribe(context, ref),
+                onTap: () => _tvbox(context, ref),
               ),
-              _Item(
+              _RowItem(
                 color: const Color(0xFF8B5CF6),
                 icon: Icons.cloud_download_rounded,
                 title: '源订阅仓库',
-                subtitle: '管理多个远程仓库并一键同步',
+                subtitle: '管理远程仓库并一键同步',
                 onTap: () => context.push('/source/repo'),
               ),
-              _Item(
+              _RowItem(
                 color: const Color(0xFF06B6D4),
-                icon: Icons.paste_rounded,
+                icon: Icons.article_outlined,
                 title: '粘贴站点 / 配置文本',
                 subtitle: 'JSON、TVBox 配置、单站 api 文本',
-                onTap: () => _pasteConfig(context, ref),
+                onTap: () => _paste(context, ref),
               ),
-              _Item(
+              _RowItem(
                 color: const Color(0xFFF59E0B),
                 icon: Icons.cell_tower_rounded,
                 title: '直播频道',
@@ -57,33 +67,32 @@ class AddResourcePage extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          _SectionLabel('从本地导入'),
-          _GroupCard(
+          const SizedBox(height: 18),
+          _Label('从本地导入'),
+          _Card(
             children: [
-              _Item(
+              _RowItem(
                 color: const Color(0xFF3B82F6),
-                icon: Icons.insert_drive_file_rounded,
+                icon: Icons.insert_drive_file_outlined,
                 title: '导入文件',
-                subtitle: 'json / txt / TVBox 配置，可选',
-                onTap: () => _pickFiles(context, ref, liveOnly: false),
+                subtitle: 'json / txt / TVBox 配置，可多选',
+                onTap: () => _pick(context, ref, liveOnly: false),
               ),
-              _Item(
+              _RowItem(
                 color: const Color(0xFFF59E0B),
                 icon: Icons.cell_tower_rounded,
                 title: '导入直播列表文件',
-                subtitle: '本地 M3U / TXT 直播源',
-                onTap: () => _pickFiles(context, ref, liveOnly: true),
+                subtitle: '本地 M3U / TXT 直播源，可多选',
+                onTap: () => _pick(context, ref, liveOnly: true),
               ),
             ],
           ),
-                  ],
+        ],
       ),
     );
   }
 
-
-  Future<void> _tvboxSubscribe(BuildContext context, WidgetRef ref) async {
+  Future<void> _tvbox(BuildContext context, WidgetRef ref) async {
     final nameC = TextEditingController(text: 'TVBox 订阅');
     final urlC = TextEditingController();
     final ok = await showDialog<bool>(
@@ -94,45 +103,62 @@ class AddResourcePage extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: nameC,
-              decoration: const InputDecoration(labelText: '名称'),
-            ),
+                controller: nameC,
+                decoration: const InputDecoration(labelText: '名称')),
             const SizedBox(height: 12),
             TextField(
               controller: urlC,
+              maxLines: 2,
               decoration: const InputDecoration(
                 labelText: '配置地址',
                 hintText: 'https://.../tvbox.json',
               ),
-              maxLines: 2,
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('订阅并同步')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('取消')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('订阅并同步')),
         ],
       ),
     );
     if (ok != true || !context.mounted) return;
-    final r = await ref
-        .read(resourceImportServiceProvider)
-        .subscribeTvBox(nameC.text, urlC.text);
-    ref.invalidate(sourcesProvider);
-    ref.invalidate(sourceReposProvider);
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r.message)));
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+    try {
+      final r = await ref
+          .read(resourceImportServiceProvider)
+          .subscribeTvBox(nameC.text, urlC.text);
+      // 同步后给合并源写 siteCount
+      ref.invalidate(sourcesProvider);
+      ref.invalidate(sourceReposProvider);
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(r.message)));
+        Navigator.maybePop(context);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('失败: $e')));
+      }
     }
   }
 
-  Future<void> _pasteConfig(BuildContext context, WidgetRef ref) async {
+  Future<void> _paste(BuildContext context, WidgetRef ref) async {
     final c = TextEditingController();
-    // 尝试剪贴板
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
-      if (data?.text != null && data!.text!.trim().isNotEmpty) {
-        c.text = data.text!.trim();
-      }
+      if (data?.text != null) c.text = data!.text!.trim();
     } catch (_) {}
     final ok = await showDialog<bool>(
       context: context,
@@ -142,26 +168,35 @@ class AddResourcePage extends ConsumerWidget {
           width: double.maxFinite,
           child: TextField(
             controller: c,
-            maxLines: 12,
+            maxLines: 14,
             decoration: const InputDecoration(
-              hintText: '{"urls":[...]} 或站点数组 或 m3u 文本',
+              hintText: '{"urls":[...]} 或站点数组 或 m3u',
               border: OutlineInputBorder(),
             ),
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('导入')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('取消')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('导入')),
         ],
       ),
     );
     if (ok != true || !context.mounted) return;
-    final r = await ref.read(resourceImportServiceProvider).importConfigText(c.text);
+    final r =
+        await ref.read(resourceImportServiceProvider).importConfigText(c.text);
     ref.invalidate(sourcesProvider);
     ref.invalidate(sourceReposProvider);
     ref.invalidate(liveChannelsAsyncProvider);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r.message)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(r.message)));
+      if (r.sourcesAdded > 0 || r.liveChannels > 0) {
+        Navigator.maybePop(context);
+      }
     }
   }
 
@@ -175,15 +210,19 @@ class AddResourcePage extends ConsumerWidget {
         title: const Text('直播列表地址'),
         content: TextField(
           controller: c,
+          maxLines: 2,
           decoration: const InputDecoration(
             labelText: 'M3U URL',
             hintText: 'https://.../live.m3u',
           ),
-          maxLines: 2,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('保存')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('取消')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('保存')),
         ],
       ),
     );
@@ -191,17 +230,13 @@ class AddResourcePage extends ConsumerWidget {
     await ref.read(liveServiceProvider).saveUrl(c.text.trim());
     ref.invalidate(liveChannelsAsyncProvider);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已保存直播订阅地址')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('已保存直播订阅')));
     }
   }
 
-  Future<void> _pickFiles(
-    BuildContext context,
-    WidgetRef ref, {
-    required bool liveOnly,
-  }) async {
+  Future<void> _pick(BuildContext context, WidgetRef ref,
+      {required bool liveOnly}) async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -231,55 +266,59 @@ class AddResourcePage extends ConsumerWidget {
         }
       }
       ref.invalidate(sourcesProvider);
-      ref.invalidate(sourceReposProvider);
       ref.invalidate(liveChannelsAsyncProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msgs.join('\n')), duration: const Duration(seconds: 4)),
+          SnackBar(
+              content: Text(msgs.join('\n')),
+              duration: const Duration(seconds: 4)),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('导入失败: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('导入失败: $e')));
       }
     }
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text);
+class _Label extends StatelessWidget {
+  const _Label(this.text);
   final String text;
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
+      padding: const EdgeInsets.only(left: 6, bottom: 8, top: 6),
       child: Text(
         text,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
             ),
       ),
     );
   }
 }
 
-class _GroupCard extends StatelessWidget {
-  const _GroupCard({required this.children});
+class _Card extends StatelessWidget {
+  const _Card({required this.children});
   final List<Widget> children;
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(18),
       child: Column(
         children: [
           for (var i = 0; i < children.length; i++) ...[
             children[i],
             if (i != children.length - 1)
-              Divider(height: 1, indent: 64, color: Theme.of(context).dividerColor.withOpacity(0.4)),
+              Divider(
+                height: 1,
+                indent: 62,
+                color: Theme.of(context).dividerColor.withOpacity(0.35),
+              ),
           ],
         ],
       ),
@@ -287,8 +326,8 @@ class _GroupCard extends StatelessWidget {
   }
 }
 
-class _Item extends StatelessWidget {
-  const _Item({
+class _RowItem extends StatelessWidget {
+  const _RowItem({
     required this.color,
     required this.icon,
     required this.title,
@@ -300,17 +339,16 @@ class _Item extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
-
   @override
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       leading: CircleAvatar(
         backgroundColor: color,
-        child: Icon(icon, color: Colors.white, size: 22),
+        child: Icon(icon, color: Colors.white, size: 20),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
       subtitle: Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis),
       trailing: const Icon(Icons.chevron_right_rounded),
     );

@@ -25,6 +25,9 @@ class Source extends Equatable {
     this.filterable = true,
     this.enabled = true,
     this.order = 0,
+    this.siteCount = 0,
+    this.lastUsedAt,
+    this.lastLatencyMs,
   });
 
   final String key;          // 唯一标识
@@ -38,6 +41,9 @@ class Source extends Equatable {
   final bool filterable;
   final bool enabled;
   final int order;
+  final int siteCount;
+  final DateTime? lastUsedAt;
+  final int? lastLatencyMs;
 
   Source copyWith({
     String? key,
@@ -51,6 +57,9 @@ class Source extends Equatable {
     bool? filterable,
     bool? enabled,
     int? order,
+    int? siteCount,
+    DateTime? lastUsedAt,
+    int? lastLatencyMs,
   }) {
     return Source(
       key: key ?? this.key,
@@ -64,6 +73,9 @@ class Source extends Equatable {
       filterable: filterable ?? this.filterable,
       enabled: enabled ?? this.enabled,
       order: order ?? this.order,
+      siteCount: siteCount ?? this.siteCount,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+      lastLatencyMs: lastLatencyMs ?? this.lastLatencyMs,
     );
   }
 
@@ -79,6 +91,9 @@ class Source extends Equatable {
         'filterable': filterable,
         'enabled': enabled,
         'order': order,
+        'siteCount': siteCount,
+        'lastUsedAt': lastUsedAt?.toIso8601String(),
+        'lastLatencyMs': lastLatencyMs,
       };
 
   factory Source.fromJson(Map<String, dynamic> json) {
@@ -97,6 +112,11 @@ class Source extends Equatable {
       filterable: json['filterable'] as bool? ?? true,
       enabled: json['enabled'] as bool? ?? true,
       order: json['order'] as int? ?? 0,
+      siteCount: json['siteCount'] as int? ?? 0,
+      lastUsedAt: json['lastUsedAt'] != null
+          ? DateTime.tryParse('${json['lastUsedAt']}')
+          : null,
+      lastLatencyMs: json['lastLatencyMs'] as int?,
     );
   }
 
