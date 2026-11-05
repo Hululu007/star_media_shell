@@ -4,8 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/theme_controller.dart';
 import '../../core/theme/widgets/glass_container.dart';
-import '../../services/source_service.dart';
-import '../../services/storage_service.dart';
+import '../../services/spider/spider_manager.dart';
 
 /// 我的（对标催壳：收藏/历史/源/设置聚合）
 class MinePage extends ConsumerWidget {
@@ -14,7 +13,7 @@ class MinePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final active = ref.watch(activeSourceProvider);
-    final themeMode = ref.watch(themeControllerProvider);
+    final themeState = ref.watch(themeControllerProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('我的')),
@@ -28,7 +27,8 @@ class MinePage extends ConsumerWidget {
                 child: Icon(Icons.movie_filter_rounded,
                     color: Theme.of(context).colorScheme.primary),
               ),
-              title: const Text('星辰影音', style: TextStyle(fontWeight: FontWeight.w700)),
+              title: const Text('星辰影音',
+                  style: TextStyle(fontWeight: FontWeight.w700)),
               subtitle: Text('当前源：${active.name}'),
               trailing: TextButton(
                 onPressed: () => context.push('/source'),
@@ -72,18 +72,13 @@ class MinePage extends ConsumerWidget {
                 icon: Icons.palette_outlined,
                 color: Colors.purple,
                 title: '外观主题',
-                subtitle: switch (themeMode) {
+                subtitle: switch (themeState.themeMode) {
                   ThemeMode.system => '跟随系统',
                   ThemeMode.light => '浅色',
                   ThemeMode.dark => '深色',
                 },
                 onTap: () {
-                  final next = switch (themeMode) {
-                    ThemeMode.system => ThemeMode.light,
-                    ThemeMode.light => ThemeMode.dark,
-                    ThemeMode.dark => ThemeMode.system,
-                  };
-                  ref.read(themeControllerProvider.notifier).setMode(next);
+                  ref.read(themeControllerProvider.notifier).cycleThemeMode();
                 },
               ),
               _Tile(
@@ -107,7 +102,10 @@ class _Section extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.45),
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withOpacity(0.45),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(children: children),
     );
