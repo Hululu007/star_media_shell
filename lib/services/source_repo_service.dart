@@ -80,6 +80,7 @@ class SourceRepoService {
     connectTimeout: const Duration(seconds: 15),
     receiveTimeout: const Duration(seconds: 25),
     responseType: ResponseType.plain,
+    followRedirects: true,
     headers: {
       'User-Agent':
           'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36',
@@ -140,8 +141,33 @@ class SourceRepoService {
       return _demoSources();
     }
     final resp = await _dio.get<String>(url);
-    body = resp.data ?? '';
-    return parseRepoBody(body);
+    body = (resp.data ?? '').toString();
+    if (body.isNotEmpty && body.codeUnitAt(0) == 0xFEFF) {
+      body = body.substring(1);
+    }
+    final parsed = parseRepoBody(body);
+    if (parsed.isEmpty) {
+      throw StateError('配置已下载但未解析出站点（${body.length} 字节）');
+    }
+    return parsed;
+  }
+
+
+  bool _asBool(dynamic v, {bool fallback = true}) {
+    if (v == null) return fallback;
+    if (v is bool) return v;
+    if (v is num) return v != 0;
+    final s = v.toString().toLowerCase();
+    if (s == 'true' || s == '1' || s == 'yes') return true;
+    if (s == 'false' || s == '0' || s == 'no') return false;
+    return fallback;
+  }
+
+  int _asInt(dynamic v, {int fallback = 0}) {
+    if (v == null) return fallback;
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    return int.tryParse(v.toString()) ?? fallback;
   }
 
   /// 兼容多种仓库格式
@@ -163,8 +189,10 @@ class SourceRepoService {
       for (var i = 0; i < decoded.length; i++) {
         final e = decoded[i];
         if (e is Map) {
-          final s = _mapToSource(Map<String, dynamic>.from(e), i);
-          if (s != null) out.add(s);
+          try {
+            final s = _mapToSource(Map<String, dynamic>.from(e), i);
+            if (s != null) out.add(s);
+          } catch (_) {}
         } else if (e is String && e.startsWith('http')) {
           out.add(Source(
             key: 'repo_$i',
@@ -179,65 +207,122 @@ class SourceRepoService {
     }
 
     if (decoded is Map) {
-      // TVBox: { "urls": [ {name,url} ] }
-      final urls = decoded['urls'] ?? decoded['sites'] ?? decoded['sources'];
+      final rootJar = (decoded['spider'] ?? decoded['jar'] ?? '').toString();
+      // TVBox: sites / urls / sources
+      final urls = decoded['sites'] ?? decoded['urls'] ?? decoded['sources'];
       if (urls is List) {
         for (var i = 0; i < urls.length; i++) {
           final e = urls[i];
           if (e is Map) {
-            final s = _mapToSource(Map<String, dynamic>.from(e), i);
-            if (s != null) out.add(s);
+            try {
+              final s = _mapToSource(
+                Map<String, dynamic>.from(e),
+                i,
+                rootJar: rootJar.isEmpty ? null : rootJar,
+              );
+              if (s != null) out.add(s);
+            } catch (_) {
+              // 单站异常不拖垮整包
+            }
+          } else if (e is String && e.startsWith('http')) {
+            out.add(Source(
+              key: 'repo_url_$i',
+              name: '订阅$i',
+              api: e,
+              type: SourceType.json,
+              order: i,
+            ));
+          }
+        }
+        // lives 可选：写入一条直播相关提示源（api 为 m3u 时）
+        final lives = decoded['lives'];
+        if (lives is List) {
+          for (var i = 0; i < lives.length; i++) {
+            final e = lives[i];
+            if (e is! Map) continue;
+            final m = Map<String, dynamic>.from(e);
+            final u = (m['url'] ?? m['api'] ?? '').toString();
+            final n = (m['name'] ?? '直播$i').toString();
+            if (u.startsWith('http')) {
+              out.add(Source(
+                key: 'live_${n.hashCode.abs()}_$i',
+                name: '📺 $n',
+                api: u,
+                type: SourceType.other,
+                searchable: false,
+                order: 10000 + i,
+              ));
+            }
           }
         }
         return out;
       }
       // 单源
-      final s = _mapToSource(Map<String, dynamic>.from(decoded), 0);
+      final s = _mapToSource(Map<String, dynamic>.from(decoded), 0,
+          rootJar: rootJar.isEmpty ? null : rootJar);
       if (s != null) out.add(s);
     }
     return out;
   }
 
-  Source? _mapToSource(Map<String, dynamic> j, int index) {
-    final api = (j['api'] ?? j['url'] ?? j['api_url'] ?? '').toString();
-    final name = (j['name'] ?? j['title'] ?? '源$index').toString();
+  Source? _mapToSource(Map<String, dynamic> j, int index, {String? rootJar}) {
+    final api = (j['api'] ?? j['url'] ?? j['api_url'] ?? '').toString().trim();
+    final name = (j['name'] ?? j['title'] ?? '源$index').toString().trim();
     if (api.isEmpty && name.isEmpty) return null;
-    var key = (j['key'] ?? j['id'] ?? '').toString();
+    var key = (j['key'] ?? j['id'] ?? '').toString().trim();
     if (key.isEmpty) {
       key = 'repo_${name.hashCode.abs()}_$index';
     }
+
+    // TVBox type: 0 xml 1 json 2? 3 csp/jar 4 drpy
     SourceType type = SourceType.json;
-    final t = (j['type'] ?? j['sourceType'] ?? '').toString().toLowerCase();
-    if (t.contains('drpy') || t == '3') {
+    final rawType = j['type'] ?? j['sourceType'];
+    final t = rawType?.toString().toLowerCase() ?? '';
+    final ti = _asInt(rawType, fallback: -1);
+    if (ti == 1 || t == '1') {
+      type = SourceType.json;
+    } else if (ti == 3 || t == '3' || api.startsWith('csp_')) {
+      type = SourceType.cat; // jar/csp 站
+    } else if (ti == 4 || t.contains('drpy') || api.contains('drpy2') || api.endsWith('.js')) {
       type = SourceType.drpy;
-    } else if (t.contains('python') || t == 'py') {
+    } else if (t.contains('python') || api.endsWith('.py') || api.startsWith('python://')) {
       type = SourceType.python;
     } else if (t.contains('js')) {
       type = SourceType.jsrule;
-    } else {
+    } else if (api.startsWith('http') && (api.contains('provide') || api.contains('api.php'))) {
+      type = SourceType.json;
+    }
+
+    // jar: site jar or root spider (strip ;md5;...)
+    var jar = (j['jar'] ?? rootJar ?? '').toString().trim();
+    if (jar.contains(';')) jar = jar.split(';').first.trim();
+
+    // ext may be Map
+    String? ext;
+    final ev = j['ext'];
+    if (ev is Map || ev is List) {
       try {
-        type = SourceType.values.firstWhere((e) => e.name == t);
-      } catch (_) {}
+        ext = jsonEncode(ev);
+      } catch (_) {
+        ext = ev.toString();
+      }
+    } else if (ev != null) {
+      ext = ev.toString();
     }
-    // api 形态推断
-    if (api.contains('drpy') || api.contains('var rule')) {
-      type = SourceType.drpy;
-    }
-    if (api.startsWith('python://') || api.endsWith('.py')) {
-      type = SourceType.python;
-    }
+
     return Source(
       key: key,
       name: name,
       api: api.isEmpty ? name : api,
       type: type,
-      ext: j['ext']?.toString(),
-      jar: j['jar']?.toString(),
+      ext: ext,
+      jar: jar.isEmpty ? null : jar,
       playerUrl: j['playerUrl']?.toString() ?? j['playUrl']?.toString(),
-      searchable: j['searchable'] as bool? ?? true,
-      filterable: j['filterable'] as bool? ?? true,
-      enabled: j['enabled'] as bool? ?? true,
-      order: j['order'] as int? ?? index,
+      searchable: _asBool(j['searchable'], fallback: true),
+      filterable: _asBool(j['filterable'], fallback: true),
+      enabled: _asBool(j['enabled'], fallback: true),
+      order: _asInt(j['order'], fallback: index),
+      siteCount: 1,
     );
   }
 
