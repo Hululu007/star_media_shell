@@ -96,6 +96,16 @@ class Source extends Equatable {
         'lastLatencyMs': lastLatencyMs,
       };
 
+  static bool _readBool(dynamic v, bool fallback) {
+    if (v == null) return fallback;
+    if (v is bool) return v;
+    if (v is num) return v != 0;
+    final s = v.toString().toLowerCase();
+    if (s == '1' || s == 'true' || s == 'yes') return true;
+    if (s == '0' || s == 'false' || s == 'no') return false;
+    return fallback;
+  }
+
   factory Source.fromJson(Map<String, dynamic> json) {
     return Source(
       key: json['key']?.toString() ?? '',
@@ -108,9 +118,9 @@ class Source extends Equatable {
       ext: json['ext']?.toString(),
       jar: json['jar']?.toString(),
       playerUrl: json['playerUrl']?.toString() ?? json['playUrl']?.toString(),
-      searchable: json['searchable'] as bool? ?? true,
-      filterable: json['filterable'] as bool? ?? true,
-      enabled: json['enabled'] as bool? ?? true,
+      searchable: _readBool(json['searchable'], true),
+      filterable: _readBool(json['filterable'], true),
+      enabled: _readBool(json['enabled'], true),
       order: json['order'] as int? ?? 0,
       siteCount: json['siteCount'] as int? ?? 0,
       lastUsedAt: json['lastUsedAt'] != null
@@ -120,6 +130,16 @@ class Source extends Equatable {
     );
   }
 
+  /// 是否适合作为首页点播源（非 CSP 名、非空）
+  bool get canLoadHome {
+    final a = api.trim();
+    if (a.isEmpty) return false;
+    if (a.startsWith('csp_')) return false;
+    if (type == SourceType.cat && !a.startsWith('http')) return false;
+    return true;
+  }
+
   @override
-  List<Object?> get props => [key];
+  List<Object?> get props => [key, name, api, type];
 }
+

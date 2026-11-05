@@ -37,13 +37,17 @@ class JsonCmsSpider implements BaseSpider {
     if (api.isEmpty) {
       throw StateError('采集站 api 为空');
     }
-    // 允许用户只填域名或完整 provide 路径
-    if (!api.contains('provide') && !api.contains('api.php')) {
+    final lower = api.toLowerCase();
+    // TVBox 配置包 / 静态 json 不要改写成 provide 接口
+    final isConfigFile = lower.endsWith('.json') ||
+        lower.contains('tvbox') ||
+        lower.contains('/fish.json');
+    if (!isConfigFile &&
+        !api.contains('provide') &&
+        !api.contains('api.php') &&
+        !api.contains('/vod')) {
       if (!api.endsWith('/')) api = '$api/';
       api = '${api}api.php/provide/vod/';
-    }
-    if (!api.endsWith('/') && !api.contains('?')) {
-      // keep as-is; params will use ?
     }
     _base = api;
   }
@@ -113,6 +117,21 @@ class JsonCmsSpider implements BaseSpider {
   @override
   Future<HomeResult> home({String? filter}) async {
     try {
+      // 先探测是否为 TVBox 配置包（含 sites）
+      try {
+        final probe = await _dio.get<dynamic>(source.api);
+        final data = probe.data;
+        if (data is Map && data['sites'] is List) {
+          throw StateError('当前是 TVBox 配置包，请到「资源」页选择具体站点，而不是配置地址本身');
+        }
+        if (data is String && data.contains('"sites"')) {
+          throw StateError('当前是 TVBox 配置包，请到「资源」页选择具体站点');
+        }
+      } catch (e) {
+        if (e is StateError) rethrow;
+        // 探测失败继续走 CMS 逻辑
+      }
+
       // 分类
       final classData = await _get({'ac': 'list'});
       final classes = <VodCategory>[];

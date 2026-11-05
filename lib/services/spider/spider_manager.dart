@@ -8,6 +8,7 @@ import 'drpy/drpy_web_spider.dart';
 import 'python/python_spider.dart';
 import 'mock_spider.dart';
 import 'json_cms_spider.dart';
+import '../source_service.dart';
 
 /// 爬虫管理器：负责创建、缓存、切换不同引擎
 class SpiderManager {
@@ -84,10 +85,44 @@ final activeSourceProvider = StateProvider<Source>((ref) {
 });
 
 final homeDataProvider = FutureProvider<HomeResult>((ref) async {
-  final source = ref.watch(activeSourceProvider);
   final manager = ref.watch(spiderManagerProvider);
-  final spider = await manager.getSpider(source);
-  return spider.home();
+  var source = ref.watch(activeSourceProvider);
+
+  // 激活源不可用时，自动切到第一个可首页源
+  if (!source.canLoadHome) {
+    try {
+      final list = await ref.read(sourcesProvider.future);
+      final better = list.where((s) => s.canLoadHome && s.enabled).toList();
+      if (better.isNotEmpty) {
+        source = better.first;
+        ref.read(activeSourceProvider.notifier).state = source;
+      }
+    } catch (_) {}
+  }
+
+  try {
+    final spider = await manager.getSpider(source);
+    final home = await spider.home();
+    if (home.list.isEmpty && home.classes.isEmpty) {
+      throw StateError('首页无内容');
+    }
+    return home;
+  } catch (e) {
+    // 回退演示源，避免白屏
+    try {
+      final mock = const Source(
+        key: 'mock_local',
+        name: '本地Mock源',
+        api: 'mock://local',
+        type: SourceType.json,
+      );
+      final spider = await manager.getSpider(mock);
+      final home = await spider.home();
+      return home;
+    } catch (_) {
+      rethrow;
+    }
+  }
 });
 
 final categoryProvider =

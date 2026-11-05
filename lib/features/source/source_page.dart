@@ -88,15 +88,23 @@ class _SourcePageState extends ConsumerState<SourcePage> {
 
   Future<void> _activate(Source source) async {
     final updated = source.copyWith(lastUsedAt: DateTime.now());
-    await ref.read(sourceServiceProvider).updateSource(updated);
+    try {
+      await ref.read(sourceServiceProvider).updateSource(updated);
+    } catch (_) {
+      // 可能是刚导入尚未写入完成
+      try {
+        await ref.read(sourceServiceProvider).addSource(updated);
+      } catch (_) {}
+    }
     ref.read(activeSourceProvider.notifier).state = updated;
     await ref.read(sourceServiceProvider).saveActiveKey(source.key);
     ref.invalidate(homeDataProvider);
     ref.invalidate(sourcesProvider);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('已切换到「${source.name}」')),
-      );
+      final tip = source.canLoadHome
+          ? '已切换到「${source.name}」'
+          : '已切换到「${source.name}」（CSP/Jar 站，首页可能无数据，需 jar 运行时）';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tip)));
     }
   }
 

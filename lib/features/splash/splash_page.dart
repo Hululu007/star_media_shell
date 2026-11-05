@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../models/source.dart';
 import '../../services/source_service.dart';
 import '../../services/spider/spider_manager.dart';
 
@@ -32,13 +33,29 @@ class _SplashPageState extends ConsumerState<SplashPage>
     try {
       setState(() => _status = '加载源配置…');
       final sources = await ref.read(sourcesProvider.future);
+      final svc = ref.read(sourceServiceProvider);
       if (sources.isNotEmpty) {
-        final active = ref.read(activeSourceProvider);
-        final ok = sources.any((s) => s.key == active.key);
-        if (!ok) {
-          ref.read(activeSourceProvider.notifier).state = sources.first;
+        final savedKey = await svc.loadActiveKey();
+        Source? chosen;
+        if (savedKey != null) {
+          for (final s in sources) {
+            if (s.key == savedKey) {
+              chosen = s;
+              break;
+            }
+          }
         }
-        setState(() => _status = '当前源：${ref.read(activeSourceProvider).name}');
+        if (chosen == null || !chosen.canLoadHome) {
+          for (final s in sources) {
+            if (s.canLoadHome && s.enabled) {
+              chosen = s;
+              break;
+            }
+          }
+        }
+        chosen ??= sources.first;
+        ref.read(activeSourceProvider.notifier).state = chosen;
+        setState(() => _status = '当前源：${chosen.name}');
       } else {
         setState(() => _status = '使用内置演示源');
       }
