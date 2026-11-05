@@ -39,27 +39,36 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/media',
-                name: 'media',
-                builder: (context, state) => const LivePage(),
+                path: '/favorite',
+                name: 'favorite',
+                builder: (context, state) => const FavoritePage(),
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/search',
-                name: 'search',
-                builder: (context, state) => const SearchPage(),
+                path: '/history',
+                name: 'history',
+                builder: (context, state) => const HistoryPage(),
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/mine',
-                name: 'mine',
-                builder: (context, state) => const MinePage(),
+                path: '/source',
+                name: 'source',
+                builder: (context, state) => const SourcePage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/settings',
+                name: 'settings',
+                builder: (context, state) => const SettingsPage(),
               ),
             ],
           ),
@@ -81,16 +90,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const HistoryPage(),
       ),
       GoRoute(
-        path: '/settings',
-        name: 'settings',
-        builder: (context, state) => const SettingsPage(),
-      ),
-      GoRoute(
-        path: '/source',
-        name: 'source',
-        builder: (context, state) => const SourcePage(),
-      ),
-      GoRoute(
         path: '/source/repo',
         name: 'source_repo',
         builder: (context, state) => const SourceRepoPage(),
@@ -104,6 +103,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/search',
         name: 'search',
         builder: (context, state) => const SearchPage(),
+      ),
+      GoRoute(
+        path: '/live',
+        name: 'live',
+        builder: (context, state) => const LivePage(),
       ),
       GoRoute(
         path: '/detail/:id',
@@ -147,6 +151,11 @@ class MainShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: navigationShell,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/search'),
+        child: const Icon(Icons.search_rounded),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) {
@@ -157,24 +166,29 @@ class MainShell extends StatelessWidget {
         },
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: '首页',
+            icon: Icon(Icons.play_circle_outline_rounded),
+            selectedIcon: Icon(Icons.play_circle_rounded),
+            label: '媒体',
           ),
           NavigationDestination(
-            icon: Icon(Icons.live_tv_outlined),
-            selectedIcon: Icon(Icons.live_tv_rounded),
-            label: '直播',
+            icon: Icon(Icons.favorite_border_rounded),
+            selectedIcon: Icon(Icons.favorite_rounded),
+            label: '收藏',
           ),
           NavigationDestination(
-            icon: Icon(Icons.search_rounded),
-            selectedIcon: Icon(Icons.search_rounded),
-            label: '搜索',
+            icon: Icon(Icons.history_rounded),
+            selectedIcon: Icon(Icons.history_rounded),
+            label: '历史',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline_rounded),
-            selectedIcon: Icon(Icons.person_rounded),
-            label: '我的',
+            icon: Icon(Icons.inventory_2_outlined),
+            selectedIcon: Icon(Icons.inventory_2_rounded),
+            label: '资源',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings_rounded),
+            label: '设置',
           ),
         ],
       ),
